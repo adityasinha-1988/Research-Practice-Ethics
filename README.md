@@ -1,6 +1,6 @@
 
-# Doctoral Research Integrity: Navigating Ethics in Modern Academia
-
+# Doctoral Research Integrity: Navigating Ethics in Modern Academia 
+https://adityasinha-1988.github.io/Research-Practice-Ethics/
 ---
 
 ## Overview
