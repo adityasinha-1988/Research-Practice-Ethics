@@ -1,6 +1,4 @@
-Here is a README for GitHub for the "Doctoral Research Integrity: Navigating Ethics in Modern Academia" course, drawing on the provided sources:
 
-```markdown
 # Doctoral Research Integrity: Navigating Ethics in Modern Academia
 
 ---
