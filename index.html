@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsible Conduct of Research</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
+    <!-- Chosen Palette: Warm Neutrals (Alabaster, Beaver, Pale Taupe) with a soft teal accent (Cadet Blue) for a calm, professional, and academic feel. -->
+    <!-- Application Structure Plan: A single-page application with a fixed sidebar for module navigation and a dynamic main content area. This structure provides a clear, consistent user experience, allowing students to easily navigate between modules without page reloads, promoting non-linear exploration. Each module combines concise theory with interactive elements (case studies, dilemmas, quizzes) to promote active learning over passive reading, directly addressing the request for less lecture and more participation. This design supports both self-study and a flipped-classroom model. -->
+    <!-- Visualization & Content Choices: Report Info: Prevalence of ethical issues faced by PhDs -> Goal: Inform/Engage -> Viz: Bar Chart -> Interaction: Hover for data points -> Justification: Provides an immediate, data-driven hook showing the course's relevance. Library: Chart.js (Canvas). Report Info: Decision process for authorship -> Goal: Organize/Guide -> Presentation: Interactive HTML/CSS Diagram -> Interaction: Click on steps to reveal details -> Justification: Visually simplifies a complex decision-making process into actionable steps. Method: HTML/CSS with JS. Report Info: Ethical dilemmas -> Goal: Engage/Assess -> Presentation: Interactive Quiz/Scenario Cards -> Interaction: User selects an option and receives immediate feedback -> Justification: Fosters active critical thinking and application of principles. Method: Vanilla JS. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        .content-area {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .content-fade-out {
+            opacity: 0;
+        }
+        .sidebar-link.active {
+            background-color: #A9B4C2;
+            color: #2F3D40;
+            font-weight: 600;
+        }
+        .case-study-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .case-study-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        body { font-family: 'Source Sans Pro', sans-serif; }
+        .tl-text .tl-headline-fade { color: #0d47a1; }
+        .tl-text h2 { font-size: 1.2em; color: #b71c1c; margin-top: 20px; }
+    </style>
+</head>
+<body class="bg-[#F5F5F5] text-[#2F3D40]">
+    <div class="flex h-screen">
+        <aside class="w-64 bg-[#E0D8D3] p-6 shadow-lg overflow-y-auto flex flex-col">
+            <h1 class="text-2xl font-bold text-[#2F3D40] mb-8">RCR Course</h1>
+            <nav id="sidebar-nav" class="flex flex-col space-y-2">
+            </nav>
+        </aside>
+
+        <main id="main-content" class="flex-1 p-6 md:p-10 overflow-y-auto">
+            <div id="content-area" class="content-area">
+            </div>
+        </main>
+    </div>
+    
+    <script src="https://cdn.knightlab.com/libs/timeline3/latest/js/timeline.js"></script>
+
+<script>
+    (function() {
+        const courseData = {
+            home: {
+                title: "Course Overview",
+                content: `
+                    <div class="max-w-4xl mx-auto">
+                        <h2 class="text-4xl font-bold mb-4 text-[#2F3D40]">Responsible Conduct of Research in the Age of AI</h2>
+                        <p class="text-lg text-[#5A6C6F] mb-6">Welcome, researchers. This course is designed to empower you with the knowledge and ethical framework necessary to navigate the complexities of modern academia. We will explore foundational principles, tackle contemporary challenges like AI and data manipulation, and equip you to conduct research with the highest level of integrity.</p>
+                        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                            <h3 class="text-2xl font-semibold mb-4">Common Ethical Dilemmas in PhD Research</h3>
+                            <p class="text-sm text-gray-600 mb-4">Based on surveys of early-career researchers, certain challenges appear more frequently. This chart highlights the prevalence of reported ethical issues, underscoring the importance of the topics we will cover.</p>
+                            <div class="chart-container relative h-80 w-full max-w-2xl mx-auto">
+                                <canvas id="dilemmasChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-[#A9B4C2] bg-opacity-30 p-6 rounded-lg">
+                            <h3 class="text-2xl font-semibold mb-3">How to Use This Course</h3>
+                            <p class="mb-2">This is an interactive, self-paced resource. Navigate through the modules using the sidebar. Each module contains:</p>
+                            <ul class="list-disc list-inside space-y-2 text-[#2F3D40]">
+                                <li><strong>Core Concepts:</strong> Key theoretical underpinnings and guidelines.</li>
+                                <li><strong>Case Studies:</strong> Real-world examples for analysis.</li>
+                                <li><strong>Ethical Dilemmas:</strong> Interactive scenarios to test your decision-making.</li>
+                                <li><strong>Resources & Reflections:</strong> Links to further reading and prompts for personal reflection.</li>
+                            </ul>
+                        </div>
+                    </div>
+                `
+            },
+            module1: {
+                title: "Foundations of Research Integrity",
+                content: `
+                    <h2 class="text-3xl font-bold mb-4">Module 1: Foundations of Research Integrity</h2>
+                    <p class="text-lg text-gray-600 mb-6">This module establishes the bedrock of responsible research. We define research integrity and introduce the core principles and guidelines that govern ethical scientific conduct, both internationally and within the Indian context.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-xl font-semibold mb-2">Core Principles</h3>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li><strong>Honesty:</strong> In proposing, performing, and reporting research.</li>
+                                <li><strong>Accuracy:</strong> In representing data and results.</li>
+                                <li><strong>Objectivity:</strong> Avoiding bias in experimental design, data analysis, and interpretation.</li>
+                                <li><strong>Fairness:</strong> In peer review and mentorship.</li>
+                                <li><strong>Openness:</strong> Sharing data, results, and tools, while respecting confidentiality.</li>
+                                <li><strong>Accountability:</strong> For all aspects of the research.</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-xl font-semibold mb-2">Key Guidelines</h3>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li><strong>Singapore Statement on Research Integrity:</strong> An influential global guide.</li>
+                                <li><strong>University Grants Commission (UGC) of India:</strong> Policies on academic integrity and prevention of plagiarism.</li>
+                                <li><strong>Institutional Policies:</strong> Your own university's specific code of conduct.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow">
+                         <h3 class="text-2xl font-semibold mb-4">Ethical Dilemma</h3>
+                        <div class="dilemma-container">
+                            <p class="mb-4">You are a first-year PhD student and your supervisor suggests adding a senior professor's name to your upcoming paper. The professor provided some initial feedback but had no substantial intellectual contribution to the work. This could help the paper get accepted into a top journal. What do you do?</p>
+                            <div class="space-y-3">
+                                <button onclick="showFeedback('dilemma1-1')" class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md">Agree to add the name. It's a strategic move for your career.</button>
+                                <button onclick="showFeedback('dilemma1-2')" class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md">Politely ask your supervisor to clarify the professor's specific contributions that warrant authorship.</button>
+                                <button onclick="showFeedback('dilemma1-3')" class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md">Refuse directly, stating it constitutes 'gift authorship' and is unethical.</button>
+                            </div>
+                            <div id="feedback-box" class="mt-4 p-4 rounded-md hidden"></div>
+                        </div>
+                    </div>
+                `
+            },
+            module2: {
+                title: "Authorship & Publication",
+                content: `
+                    <h2 class="text-3xl font-bold mb-4">Module 2: Authorship & Publication Ethics</h2>
+                    <p class="text-lg text-gray-600 mb-6">Determining authorship is one of the most common sources of conflict in academia. This module provides clear criteria for authorship, explores the nuances of peer review, and helps you navigate the pressures of publication.</p>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow mb-8">
+                        <h3 class="text-2xl font-semibold mb-4">Interactive Authorship Decision Tool</h3>
+                        <p class="mb-4">Based on the ICMJE criteria, authorship should be based on all four of the following. Click each step to see more details.</p>
+                        <div class="space-y-2">
+                            <div class="p-3 bg-gray-50 border rounded-md cursor-pointer" onclick="toggleDetail('detail-1')"><strong>1. Contribution:</strong> Substantial contributions to conception, design, acquisition, analysis, or interpretation of data.</div>
+                            <p id="detail-1" class="hidden p-3 bg-gray-100 text-sm rounded-md ml-4">This means more than just funding or general supervision. It requires intellectual input into the research itself.</p>
+                            
+                            <div class="p-3 bg-gray-50 border rounded-md cursor-pointer" onclick="toggleDetail('detail-2')"><strong>2. Drafting:</strong> Drafting the work or revising it critically for important intellectual content.</div>
+                            <p id="detail-2" class="hidden p-3 bg-gray-100 text-sm rounded-md ml-4">Simply proofreading or editing for language is not enough. The revision must contribute to the paper's intellectual substance.</p>
+
+                            <div class="p-3 bg-gray-50 border rounded-md cursor-pointer" onclick="toggleDetail('detail-3')"><strong>3. Approval:</strong> Final approval of the version to be published.</div>
+                            <p id="detail-3" class="hidden p-3 bg-gray-100 text-sm rounded-md ml-4">Every listed author must see and approve the final manuscript before submission.</p>
+
+                            <div class="p-3 bg-gray-50 border rounded-md cursor-pointer" onclick="toggleDetail('detail-4')"><strong>4. Accountability:</strong> Agreement to be accountable for all aspects of the work.</div>
+                            <p id="detail-4" class="hidden p-3 bg-gray-100 text-sm rounded-md ml-4">This ensures that each author takes responsibility for the integrity of the entire study, not just their own part.</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-semibold mb-4">Case Studies</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="case-study-card bg-white p-6 rounded-lg shadow cursor-pointer" onclick="showCaseStudy('case1')">
+                            <h4 class="font-bold text-lg">The Disputed First Author</h4>
+                            <p class="text-sm text-gray-600 mt-2">Two postdocs contributed equally to a project. Who should be the first author? And who decides?</p>
+                        </div>
+                         <div class="case-study-card bg-white p-6 rounded-lg shadow cursor-pointer" onclick="showCaseStudy('case2')">
+                            <h4 class="font-bold text-lg">The Reviewer's Request</h4>
+                            <p class="text-sm text-gray-600 mt-2">During peer review, a reviewer suggests you cite several of their own papers that are only tangentially related. What should you do?</p>
+                        </div>
+                    </div>
+                    <div id="case-study-display" class="mt-6"></div>
+                `
+            },
+            module3: {
+                title: "Data, AI & Misconduct",
+                content: `
+                    <h2 class="text-3xl font-bold mb-4">Module 3: Data Management, AI & Research Misconduct</h2>
+                    <p class="text-lg text-gray-600 mb-6">The integrity of research hinges on the integrity of its data. This module covers best practices for data management and the three cardinal sins of research misconduct. We also address the new ethical frontier: the responsible use of Artificial Intelligence in research.</p>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-red-100 p-6 rounded-lg shadow">
+                            <h3 class="text-xl font-semibold mb-2 text-red-800">Fabrication</h3>
+                            <p>Making up data or results and recording or reporting them.</p>
+                        </div>
+                        <div class="bg-yellow-100 p-6 rounded-lg shadow">
+                            <h3 class="text-xl font-semibold mb-2 text-yellow-800">Falsification</h3>
+                            <p>Manipulating research materials, equipment, or processes, or changing or omitting data such that the research is not accurately represented.</p>
+                        </div>
+                        <div class="bg-blue-100 p-6 rounded-lg shadow">
+                            <h3 class="text-xl font-semibold mb-2 text-blue-800">Plagiarism</h3>
+                            <p>The appropriation of another person's ideas, processes, results, or words without giving appropriate credit.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-2xl font-semibold mb-4">The Role of AI in Research: A Double-Edged Sword</h3>
+                        <p class="mb-4">Generative AI tools can be powerful research assistants, but their misuse poses significant ethical risks. The key is transparency and maintaining intellectual ownership.</p>
+                        <div class="flex flex-col md:flex-row gap-6">
+                            <div class="flex-1">
+                                <h4 class="text-lg font-semibold text-green-700">Acceptable Uses (with disclosure)</h4>
+                                <ul class="list-disc list-inside mt-2 space-y-1">
+                                    <li>Improving grammar and clarity of text you have written.</li>
+                                    <li>Brainstorming research questions or literature search terms.</li>
+                                    <li>Generating code snippets for data analysis (which you must verify).</li>
+                                    <li>Summarizing complex papers for your own understanding.</li>
+                                </ul>
+                            </div>
+                            <div class="flex-1 border-t-2 md:border-t-0 md:border-l-2 pt-4 md:pt-0 md:pl-6 border-red-300">
+                                <h4 class="text-lg font-semibold text-red-700">Unacceptable Uses</h4>
+                                 <ul class="list-disc list-inside mt-2 space-y-1">
+                                    <li>Generating entire paragraphs or sections of a manuscript.</li>
+                                    <li>Creating "novel" data or fabricating literature reviews.</li>
+                                    <li>Listing an AI tool as an author.</li>
+                                    <li>Using AI to write peer reviews of others' work.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <p class="mt-6 text-sm text-gray-600 italic"><strong>Guiding Principle:</strong> If you couldn't have done it without the AI, you must disclose its use. If the AI is doing the core intellectual work, it's likely an unethical application.</p>
+                    </div>
+                `
+            },
+            module4: {
+                title: "Mentorship & Safety",
+                content: `
+                    <h2 class="text-3xl font-bold mb-4">Module 4: The Human Element: Mentorship & Social Safety</h2>
+                    <p class="text-lg text-gray-600 mb-6">Research is a human endeavor. A positive and safe research environment is critical for both personal well-being and scientific rigor. This module explores the dynamics of the supervisor-student relationship and the importance of fostering a culture of respect and psychological safety.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-xl font-semibold mb-2">The Supervisor's Responsibilities</h3>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>Provide timely and constructive feedback.</li>
+                                <li>Set clear expectations and milestones.</li>
+                                <li>Foster intellectual development and independence.</li>
+                                <li>Help navigate career development.</li>
+                                <li>Ensure a safe and respectful lab/work environment.</li>
+                                <li>Avoid exploitation and recognize power imbalances.</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-xl font-semibold mb-2">The Student's Responsibilities</h3>
+                             <ul class="list-disc list-inside space-y-1">
+                                <li>Take initiative and ownership of the research project.</li>
+                                <li>Communicate progress and challenges openly.</li>
+                                <li>Be receptive to feedback and guidance.</li>
+                                <li>Uphold all principles of research integrity.</li>
+                                <li>Be a responsible and respectful member of the research group.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow">
+                         <h3 class="text-2xl font-semibold mb-4">Scenario Reflection</h3>
+                        <p class="mb-4">A senior member of your lab frequently makes jokes that you find uncomfortable and dismisses your concerns when you bring them up. Your supervisor is friends with this person and seems unaware of the issue. The lab has a high turnover of junior students.</p>
+                        <p class="mb-4 font-semibold">What are your potential courses of action? What are the risks and benefits of each?</p>
+                        <textarea class="w-full p-2 border rounded-md" rows="4" placeholder="Type your reflections here. This is for your personal use and is not saved."></textarea>
+                        <div class="mt-4 text-sm text-gray-600">
+                            <p><strong>Possible steps to consider:</strong></p>
+                            <ul class="list-disc list-inside mt-1">
+                                <li>Document specific incidents (date, time, what was said).</li>
+                                <li>Seek advice from a trusted mentor outside your lab.</li>
+                                <li>Consult your university's graduate student office, ombudsperson, or HR department to understand formal reporting options.</li>
+                                <li>If comfortable, try addressing the person again, perhaps with a more formal tone: "When you say X, it makes me feel Y. I need that to stop."</li>
+                            </ul>
+                        </div>
+                    </div>
+                `
+            },
+            module5: {
+                title: "Resources & Case Studies",
+                content: `
+                    <h2 class="text-3xl font-bold mb-4">Module 5: Resources & Landmark Case Studies</h2>
+                    <p class="text-lg text-gray-600 mb-6">This section is a practical toolkit of key documents and historical examples. It allows you to delve deeper into specific regulations and learn from past ethical failures, understanding the real-world consequences of misconduct.</p>
+
+                    <div class="bg-white p-6 rounded-lg shadow mb-8">
+                        <h3 class="text-2xl font-semibold mb-4">Key Regulations & Guidelines</h3>
+                        <p class="mb-4">These documents provide the authoritative framework for research integrity. It is essential to be aware of the rules that govern your work.</p>
+                        <ul class="space-y-4">
+                            <li>
+                                <h4 class="font-bold text-lg">Indian Regulations:</h4>
+                                <p class="pl-4">The <a href="https://nagalanduniversity.ac.in/English/node/1741" target="_blank" class="text-blue-600 hover:underline">UGC's (Promotion of Academic Integrity and Prevention of Plagiarism) Regulations, 2018</a> outline a zero-tolerance policy for plagiarism and detail the penalties at various levels of severity. All Indian universities are required to abide by these guidelines.</p>
+                            </li>
+                            <li>
+                                <h4 class="font-bold text-lg">International Standards:</h4>
+                                <p class="pl-4">The <a href="https://www.singaporestatement.org/statement.html" target="_blank" class="text-blue-600 hover:underline">Singapore Statement on Research Integrity</a> is a foundational global document that defines the principles and responsibilities fundamental to research integrity, regardless of discipline or location. The <a href="https://publicationethics.org/guidance" target="_blank" class="text-blue-600 hover:underline">Committee on Publication Ethics (COPE) Guidelines</a> offer practical advice for journal editors and authors on navigating ethical issues related to publishing.</p>
+                            </li>
+                            <li>
+                                <h4 class="font-bold text-lg">US Office of Research Integrity (ORI):</h4>
+                                <p class="pl-4">The <a href="https://ori.hhs.gov/" target="_blank" class="text-blue-600 hover:underline">ORI website</a> is a comprehensive resource that provides information on research misconduct, case summaries, and educational materials. While US-based, its principles and examples are universally relevant.</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow">
+                         <h3 class="text-2xl font-semibold mb-4">Famous Real-World Cases of Research Misconduct</h3>
+                        <p class="mb-4">These examples demonstrate how ethical violations can have devastating consequences for individuals, institutions, and the public trust in science. They serve as powerful cautionary tales.</p>
+                        <ul class="space-y-6">
+                            <li>
+                                <h4 class="font-bold text-lg">The Hwang Woo-suk Stem Cell Fraud:</h4>
+                                <p class="text-sm text-gray-600 mt-2">In 2005, South Korean researcher Hwang Woo-suk was celebrated for his groundbreaking work in human embryonic stem cells. However, it was later discovered that his team had fabricated results and used unethical egg donation practices. The scandal led to the retraction of multiple high-profile papers, loss of public funding, and a serious blow to his country's scientific reputation.</p>
+                            </li>
+                            <li>
+                                <h4 class="font-bold text-lg">The Diederik Stapel Data Fabrication:</h4>
+                                <p class="text-sm text-gray-600 mt-2">Diederik Stapel was a renowned social psychologist in the Netherlands until it was revealed he had fabricated data in dozens of his publications. His misconduct, discovered in 2011, led to the retraction of over 50 articles and a criminal investigation. The case highlighted the need for more rigorous data checking and transparency in research.</p>
+                            </li>
+                            <li>
+                                <h4 class="font-bold text-lg">The Wakefield MMR Vaccine Fraud:</h4>
+                                <p class="text-sm text-gray-600 mt-2">Andrew Wakefield published a fraudulent paper in The Lancet in 1998 linking the MMR vaccine to autism. The data was falsified, and he had undisclosed financial conflicts of interest. The paper was fully retracted, but its damage was widespread, leading to a significant drop in vaccination rates and the resurgence of measles in some regions. Wakefield was later stripped of his medical license.</p>
+                            </li>
+                        </ul>
+                    </div>
+                `
+            },
+            module6: {
+                title: "Interactive Dilemmas",
+                content: `
+                    <h2 class="text-3xl font-bold mb-4">Module 6: Interactive Ethical Dilemmas</h2>
+                    <p class="text-lg text-gray-600 mb-6">This section is designed for interactive group discussion. Read each scenario, consider your options, and discuss them with your peers before clicking to reveal the nuanced considerations. There is often no single 'right' answer, but there are better and worse ways to approach a problem.</p>
+
+                    <!-- Dilemma 1 -->
+                    <div class="bg-white p-6 rounded-lg shadow mb-8">
+                        <h3 class="text-2xl font-semibold mb-4">Dilemma 1: The 'Uncooperative' Co-author</h3>
+                        <p class="mb-4">You have been working on a collaborative paper with a colleague in another lab. They have been unresponsive to your emails about finalizing the manuscript and have missed several agreed-upon deadlines. You are close to the submission deadline and fear the paper will be delayed or rejected. You have the final draft ready to go, and your supervisor says to just submit it without the colleague's final approval.</p>
+                        <div class="space-y-3 dilemma-options" data-dilemma="dilemma6-1">
+                            <button class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md" onclick="showComplexFeedback('dilemma6-1', 'optionA', this)">A. Submit the paper with your colleague's name on it as your supervisor suggested, to meet the deadline.</button>
+                            <button class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md" onclick="showComplexFeedback('dilemma6-1', 'optionB', this)">B. Submit the paper but remove your colleague's name from the author list, as they failed to contribute to the final stage.</button>
+                            <button class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md" onclick="showComplexFeedback('dilemma6-1', 'optionC', this)">C. Email the editor explaining the situation and ask for an extension to allow your colleague to approve the final draft.</button>
+                        </div>
+                        <div id="dilemma6-1-feedback" class="mt-4 p-4 rounded-md hidden"></div>
+                    </div>
+
+                    <!-- Dilemma 2 -->
+                    <div class="bg-white p-6 rounded-lg shadow mb-8">
+                        <h3 class="text-2xl font-semibold mb-4">Dilemma 2: The Troubling Data Point</h3>
+                        <p class="mb-4">You have just completed a complex data analysis for your dissertation, and your results strongly support your hypothesis. However, a closer look at the raw data reveals one or two data points that seem to be outliers and slightly skew the results in your favor. Excluding them would make your findings even more compelling and statistically significant. The experiment was difficult, and repeating it would take months.</p>
+                        <div class="space-y-3 dilemma-options" data-dilemma="dilemma6-2">
+                            <button class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md" onclick="showComplexFeedback('dilemma6-2', 'optionA', this)">A. Exclude the outlier data points, as they are likely errors, and proceed with your analysis.</button>
+                            <button class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md" onclick="showComplexFeedback('dilemma6-2', 'optionB', this)">B. Keep the outlier data points in your analysis, but mention them in a footnote or a sentence in the results section.</button>
+                            <button class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md" onclick="showComplexFeedback('dilemma6-2', 'optionC', this)">C. Keep the outlier data points, but also conduct a second analysis with them removed, and report both results transparently.</button>
+                        </div>
+                        <div id="dilemma6-2-feedback" class="mt-4 p-4 rounded-md hidden"></div>
+                    </div>
+
+                    <!-- Dilemma 3 -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-2xl font-semibold mb-4">Dilemma 3: Navigating the 'Good Ol' Boys Club'</h3>
+                        <p class="mb-4">You are a female PhD student in a male-dominated lab. When you present your findings at lab meetings, senior students and your supervisor often interrupt you or attribute your ideas to male colleagues who speak immediately after you. You have tried to voice your concerns to your supervisor informally, but they have dismissed it as "part of the culture" and told you to "develop a thicker skin." You are starting to feel isolated and discouraged.</p>
+                        <div class="space-y-3 dilemma-options" data-dilemma="dilemma6-3">
+                            <button class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md" onclick="showComplexFeedback('dilemma6-3', 'optionA', this)">A. Keep working hard and try to ignore the behavior, hoping that your excellent work will eventually speak for itself.</button>
+                            <button class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md" onclick="showComplexFeedback('dilemma6-3', 'optionB', this)">B. Confront the senior students and your supervisor at the next lab meeting, demanding that they stop interrupting you.</button>
+                            <button class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md" onclick="showComplexFeedback('dilemma6-3', 'optionC', this)">C. Seek out a trusted mentor outside of your lab or contact a university ombudsperson to discuss the situation and explore your options confidentially.</button>
+                        </div>
+                        <div id="dilemma6-3-feedback" class="mt-4 p-4 rounded-md hidden"></div>
+                    </div>
+                `
+            },
+            module7: {
+                title: "Interactive Timeline",
+                content: `
+                    <h2 class="text-3xl font-bold mb-4">Module 7: Interactive Timeline of Research Ethics</h2>
+                    <p class="text-lg text-gray-600 mb-6">Explore the history of research ethics through a series of key events. Use the arrows to navigate through the timeline.</p>
+                    <div id='timeline-embed' style="width: 100%; height: 650px; border-top: 1px solid #ddd;"></div>
+                `
+            },
+            module8: {
+                title: "AI Chatbot for Ethics",
+                content: `
+                    <h2 class="text-3xl font-bold mb-4">Module 8: AI Chatbot for Ethics</h2>
+                    <p class="text-lg text-gray-600 mb-6">To help you further understand complex ethical issues in research, we have created an AI chatbot using NotebookLM. You can use this chatbot to ask questions about ethical dilemmas, get summaries of key principles, and explore case studies in a conversational manner.</p>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <p class="mb-4">Click the link below to open the chatbot in a new tab:</p>
+                        <a href="https://notebooklm.google.com/notebook/6ebd94ec-2f53-4932-95cc-83f0c27daa37" target="_blank" class="inline-block bg-[#007BFF] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#0056b3] transition-colors">
+                            Launch Ethics Chatbot
+                        </a>
+                        <p class="mt-4 text-sm text-gray-600 italic"><strong>Note:</strong> This chat is a separate tool and will open in a new window. It is based on the course materials and external research to provide you with additional support.</p>
+                    </div>
+                `
+            }
+        };
+        const caseStudies = {
+            case1: {
+                title: 'The Disputed First Author',
+                content: `
+                    <p><strong>Scenario:</strong> Dr. Anya Sharma and Dr. Ben Carter are two postdocs in the same lab. They worked on a project that led to a major publication. Both agree they contributed equally to the research design, data collection, and analysis. The lab PI, Professor Desai, has told them to "figure out" who will be the first author.</p>
+                    <p class="mt-2"><strong>Dilemma:</strong> Both postdocs feel their career progression heavily depends on this first-author publication. Anya argues she was the one who initially proposed the core idea. Ben argues he spent more hours in the lab physically running the experiments.</p>
+                    <h5 class="font-semibold mt-4">Discussion Points:</h5>
+                    <ul class="list-disc list-inside mt-1 text-sm">
+                        <li>Is "equal contribution" a valid reason for co-first authorship? How is this indicated in publications?</li>
+                        <li>What is the PI's responsibility in this situation?</li>
+                        <li>How could this conflict have been prevented? (Hint: Discussing authorship expectations at the beginning of a project).</li>
+                    </ul>
+                `
+            },
+            case2: {
+                title: "The Reviewer's Request",
+                content: `
+                    <p><strong>Scenario:</strong> You submit your manuscript to a journal. One of the peer reviewers praises the work but strongly suggests that you need to cite several of their own papers that are only tangentially related. When you look up the papers, you find they are all authored by the same person, likely the reviewer, and are only loosely connected to your study.</p>
+                    <p class="mt-2"><strong>Dilemma:</strong> Ignoring the request might lead to the reviewer recommending rejection. Adding the citations would pad your reference list with irrelevant work, which feels intellectually dishonest.</p>
+                    <h5 class="font-semibold mt-4">Discussion Points:</h5>
+                    <ul class="list-disc list-inside mt-1 text-sm">
+                        <li>What are the ethical boundaries of a peer reviewer's suggestions?</li>
+                        <li>How should you respond to the editor in your revision letter?</li>
+                        <li>You could cite one or two of the most relevant papers and politely explain why the others are outside the scope of your work. How does this balance ethics and strategy?</li>
+                    </ul>
+                `
+            }
+        };
+        const complexFeedback = {
+            'dilemma6-1': {
+                'optionA': {
+                    heading: 'Why This is Problematic',
+                    text: 'Submitting a paper with an unapproved author violates authorship criteria. It could lead to a retraction if the co-author later objects, and it removes their accountability for the final work. This is a form of scientific dishonesty. It prioritizes a deadline over integrity.',
+                    type: 'error',
+                    reflection: 'Consider this: How does this action affect the trust between collaborators? What are the potential long-term career consequences for you and your supervisor if this becomes public?'
+                },
+                'optionB': {
+                    heading: 'Why This is Also Problematic',
+                    text: 'Removing an author who made significant intellectual contributions is considered scientific theft. Even if they were unresponsive, their previous work on the project still qualifies them for authorship. This action undermines the collaborative nature of research and is a serious ethical violation.',
+                    type: 'error',
+                    reflection: 'Consider this: How do you justify excluding a colleague who contributed intellectual property to the project? What does this say about your own integrity and your value for their work?'
+                },
+                'optionC': {
+                    heading: 'The Most Ethical Path',
+                    text: 'This is the most responsible action. It demonstrates respect for your colleague and the integrity of the authorship process. Editors and journals are generally understanding of such issues and would rather grant an extension than publish a paper with a serious ethical breach. This protects everyone involved.',
+                    type: 'success',
+                    reflection: 'Consider this: What are the key takeaways from this situation about communication and setting clear expectations in research collaborations? How can you prevent this from happening on future projects?'
+                }
+            },
+            'dilemma6-2': {
+                'optionA': {
+                    heading: 'Why This is Problematic',
+                    text: 'Cherry-picking data to fit a hypothesis is a form of **falsification**. Even if you believe the points are errors, removing them without a pre-defined, defensible statistical reason (e.g., they fall outside a specific range due to known equipment failure) is a serious breach of integrity. This is often an unprovable claim and can easily be flagged by a careful reviewer or a data audit.',
+                    type: 'error',
+                    reflection: 'Consider this: What is the risk of being discovered? How would your reputation be affected if someone were to request your raw data and found that you had removed points without justification?'
+                },
+                'optionB': {
+                    heading: 'A Minimal, But Flawed, Solution',
+                    text: 'While mentioning them is a step towards transparency, simply burying this information in a footnote is not enough. It does not fully represent the findings and can be seen as an attempt to hide data that contradicts your main conclusion. It fails the "openness" principle of research integrity.',
+                    type: 'warning',
+                    reflection: 'Consider this: Is a footnote truly transparent? Would you consider this a complete and honest representation of your research, especially if the outlier points change the statistical outcome?'
+                },
+                'optionC': {
+                    heading: 'The Most Ethical Path',
+                    text: 'This is the gold standard for data transparency. It shows you are not afraid of your data and that you have thoughtfully considered the implications of the outliers. Reporting both analyses allows the reader to draw their own conclusions and demonstrates an unwavering commitment to integrity and objectivity. It builds trust in your work.',
+                    type: 'success',
+                    reflection: 'Consider this: How does this approach protect you from accusations of misconduct? Why is full transparency, even if it makes your results "less pretty," ultimately more valuable in the long run?'
+                }
+            },
+            'dilemma6-3': {
+                'optionA': {
+                    heading: 'Why This is Problematic',
+                    text: 'Ignoring the behavior can reinforce the negative environment and has a high chance of leading to burnout and a feeling of powerlessness. While your work is important, a toxic environment can compromise your well-being and hinder your ability to produce good research. It places the burden of a systemic problem on you.',
+                    type: 'error',
+                    reflection: 'Consider this: Why is "developing a thicker skin" an unacceptable solution to this problem? What is the institutional responsibility to provide a safe research environment?'
+                },
+                'optionB': {
+                    heading: 'Why This is a High-Risk Approach',
+                    text: 'While this is a valid reaction, a direct confrontation could escalate the conflict and put you in a vulnerable position, especially given the power dynamics. It could lead to retaliation or further isolation without proper institutional support. This is a high-risk, low-reward strategy.',
+                    type: 'warning',
+                    reflection: 'Consider this: What are the risks of this approach? What institutional support would be necessary for this to be a viable option? Why is a formal, documented process often a better path than a public confrontation?'
+                },
+                'optionC': {
+                    heading: 'The Most Ethical and Strategic Path',
+                    text: 'This is a strategic and responsible approach. It allows you to document the behavior and receive confidential advice from a neutral party who understands university policies. This path provides a safety net, protects you from retaliation, and begins a formal process to address the issue. It shifts the burden of dealing with the behavior to the institution, where it belongs.',
+                    type: 'success',
+                    reflection: 'Consider this: Why is it important to have a confidential conversation with an external party? What role do university ombudspersons or student services play in these situations? How does this action benefit not only you but also future students in the lab?'
+                }
+            }
+        };
+        const timelineData = {
+            "title": {
+                "media": {
+                    "url": "https://images.unsplash.com/photo-1518152006812-edab29b069ac?q=80&w=2070&auto=format&fit=crop",
+                    "caption": "The Foundations of Modern Research Ethics",
+                    "credit": "Photo by National Cancer Institute on Unsplash"
+                },
+                "text": {
+                    "headline": "A Detailed Timeline of Research Ethics",
+                    "text": "<p>An interactive journey through key violations and developments that have shaped modern research integrity. Use the arrows or drag the timeline below to navigate through pivotal moments in history.</p>"
+                }
+            },
+            "events": [
+                {
+                    "start_date": { "year": "1932" }, "end_date": { "year": "1972" },
+                    "text": { "headline": "Tuskegee Syphilis Study", "text": "For 40 years, the U.S. Public Health Service conducted a study on 600 African American men, denying them treatment for syphilis to observe the disease's full progression. This profound ethical failure led directly to the <strong>Belmont Report (1979)</strong>, establishing foundational ethical principles for human subject research." }
+                },
+                {
+                    "start_date": { "year": "1939" }, "end_date": { "year": "1945" },
+                    "text": { "headline": "Nazi Medical Experiments", "text": "During WWII, Nazi physicians conducted horrific and fatal experiments on concentration camp prisoners without consent. The subsequent Doctors' Trial led to the establishment of the <strong>Nuremberg Code (1947)</strong>, the first international document to mandate voluntary consent for research subjects." }
+                },
+                {
+                    "start_date": { "year": "1940" }, "end_date": { "year": "1979" },
+                    "text": { "headline": "Human Radiation Experiments", "text": "In various U.S. government-sponsored studies, subjects, including children and hospital patients, were exposed to radioactive materials without their informed consent to study the effects of radiation. This was exposed publicly much later and highlighted severe lapses in oversight." }
+                },
+                {
+                    "start_date": { "year": "1946" }, "end_date": { "year": "1948" },
+                    "text": { "headline": "Guatemala Syphilis Experiments", "text": "U.S. government-sponsored researchers deliberately infected Guatemalan prisoners, soldiers, and mental health patients with syphilis and other STDs without their consent to test penicillin. The U.S. formally apologized for this misconduct in 2010." }
+                },
+                {
+                    "start_date": { "year": "1951" },
+                    "text": { "headline": "Henrietta Lacks & HeLa Cells", "text": "<p>Tissue was taken from Henrietta Lacks during cancer treatment without her knowledge or consent. Her cells became the first immortal human cell line (HeLa), which has been vital for decades of medical research. This case continues to fuel debates about tissue ownership, consent, and patient privacy.</p><h2>Key Figure</h2><strong>Henrietta Lacks:</strong> The patient whose cells founded the HeLa cell line." }
+                },
+                {
+                    "start_date": { "year": "1956" }, "end_date": { "year": "1970" },
+                    "text": { "headline": "Willowbrook Hepatitis Studies", "text": "At the Willowbrook State School, children with intellectual disabilities were intentionally infected with the hepatitis virus to study its progression. The study raised severe ethical questions about research on vulnerable populations." }
+                },
+                {
+                    "start_date": { "year": "1961" },
+                    "text": { "headline": "Milgram Obedience Experiments", "text": "Stanley Milgram's experiments on obedience to authority caused significant psychological distress to participants through deception, highlighting the potential for severe psychological harm in research." }
+                },
+                {
+                    "start_date": { "year": "1971" },
+                    "text": { "headline": "Stanford Prison Experiment", "text": "A simulated prison environment with student volunteers was terminated early due to the unexpectedly severe psychological abuse and trauma experienced by participants, becoming a major case study in the ethical treatment of human subjects." }
+                },
+                {
+                    "start_date": { "year": "1998" }, "end_date": { "year": "2001" },
+                    "text": { "headline": "Jan Hendrik Schön Scandal", "text": "<p>A star physicist at Bell Labs was found to have fabricated or falsified data in at least 16 groundbreaking papers. The scandal was one of the most high-profile cases of misconduct in modern physics, leading to his termination.</p><h2>Key Figure</h2><strong>Jan Hendrik Schön:</strong> A physicist involved in a major data fabrication scandal." }
+                },
+                {
+                    "start_date": { "year": "1999" },
+                    "text": { "headline": "Bezwoda Chemotherapy Misconduct", "text": "<p>A prominent researcher admitted to falsifying patient data, trial records, and methodological details in high-dose chemotherapy studies, which was revealed by an ethics audit.</p><h2>Key Figure</h2><strong>Raymond Bezwoda:</strong> A researcher who admitted to falsifying patient data." }
+                },
+                {
+                    "start_date": { "year": "2000" }, "end_date": { "year": "2021" },
+                    "text": { "headline": "Quadrupling of European Research Retractions", "text": "A study revealed that the rate of retractions in European biomedical research quadrupled during this period. Two-thirds of these were attributed to misconduct such as fabrication, falsification, or plagiarism, highlighting a growing integrity crisis." }
+                },
+                {
+                    "start_date": { "year": "2004" }, "end_date": { "year": "2006" },
+                    "text": { "headline": "Hwang Woo-suk Stem Cell Scandal", "text": "<p>The celebrated South Korean scientist claimed to have created human embryonic stem cells through cloning. Investigations revealed his landmark papers were based on fabricated data and involved ethical violations concerning the donation of human eggs.</p><h2>Key Figure</h2><strong>Hwang Woo-suk:</strong> A stem cell researcher involved in a major fabrication scandal." }
+                },
+                {
+                    "start_date": { "year": "2006" },
+                    "text": { "headline": "Alzheimer’s 'Amyloid' Study Retraction (Retracted 2024)", "text": "A highly influential 2006 paper in <em>Nature</em>, which provided key evidence for the 'amyloid hypothesis' of Alzheimer's, was retracted in 2024. An investigation revealed that images in the paper had been deliberately tampered with, making it the most-cited paper ever to be withdrawn." }
+                },
+                {
+                    "start_date": { "year": "2012" },
+                    "text": { "headline": "Francesca Gino (Harvard) Data Fabrication", "text": "<p>A prominent behavioral scientist and ethics researcher at Harvard Business School was found to have fabricated data in multiple studies. Harvard took the rare step of revoking her tenure in 2025, leading to ongoing legal disputes.</p><h2>Key Figure</h2><strong>Francesca Gino:</strong> A prominent ethics researcher found to have fabricated data." }
+                },
+                {
+                    "start_date": { "year": "2018" },
+                    "text": { "headline": "Abderrahmane Kaidi Data Fabrication", "text": "<p>A cancer researcher at the University of Bristol admitted to fabricating research data to mislead collaborators about experimental results. He resigned following an institutional investigation.</p><h2>Key Figure</h2><strong>Abderrahmane Kaidi:</strong> A researcher who fabricated data and resigned after an investigation." }
+                },
+                {
+                    "start_date": { "year": "2019" },
+                    "text": { "headline": "Huixiang PhD Tragedy (ISCA Suicide Case)", "text": "<p>A PhD candidate's suicide spurred an ACM investigation into advisor misconduct. His final requests, which included the retraction of a flawed paper he was pressured to publish, were eventually honored.</p><h2>Key Figure</h2><strong>Huixiang:</strong> A PhD candidate whose suicide spurred an investigation into advisor misconduct." }
+                },
+                {
+                    "start_date": { "year": "2022", "month": "2", "day": "18" },
+                    "text": { "headline": "Call for Ethics Education in Computer Science", "text": "<p>An article by Lauren Cotton and Bettina Mateo highlights the unique ethical decisions facing computer scientists and the worrying lack of substantial ethics education in most computer science curriculums.</p><h2>Key Scholars</h2><strong>Lauren Cotton & Bettina Mateo:</strong> Co-authors of 'The Importance of Ethics in Computer Science'." }
+                },
+                {
+                    "start_date": { "year": "2022" }, "end_date": { "year": "2024" },
+                    "text": { "headline": "Ranga Dias Superconductor Claims Retracted", "text": "<p>A scientist who garnered global attention for claims of discovering a room-temperature superconductor was terminated from his university after investigations revealed significant data misrepresentation and manipulation in his work.</p><h2>Key Figure</h2><strong>Ranga Dias:</strong> A scientist whose superconductor claims were retracted for data misrepresentation." }
+                },
+                {
+                    "start_date": { "year": "2023" },
+                    "text": { "headline": "ICMR AI Ethics Guidelines (India)", "text": "The Indian Council of Medical Research (ICMR) issued comprehensive ethical guidelines for the use of artificial intelligence in biomedical research and healthcare, addressing issues like data privacy, algorithmic bias, consent, and accountability." }
+                },
+                {
+                    "start_date": { "year": "2024" },
+                    "text": { "headline": "Dana-Farber Image Manipulation Exposed", "text": "A scientific integrity blogger exposed potential image manipulation in dozens of published papers from researchers at the prestigious Dana-Farber Cancer Institute. This led to internal investigations and requests for numerous retractions and corrections." }
+                },
+                {
+                    "start_date": { "year": "2025" },
+                    "text": { "headline": "Predatory 'Journal Snatchers' Exposed", "text": "An investigation exposed a new form of predatory publishing where legitimate journals were converted into venues with poor peer review and high fees, leading to their de-indexing from major academic databases due to integrity concerns." }
+                },
+                {
+                    "start_date": { "year": "2025", "month": "9", "day": "6" },
+                     "media": {
+                        "url": "https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=2070&auto=format&fit=crop",
+                        "caption": "A new generation of researchers discussing ethics.", "credit": "Photo by Dylan Gillis on Unsplash"
+                    },
+                    "text": { "headline": "'Doctoral Research Integrity' Report Circulated", "text": "<p>A report is circulated today outlining a mandatory 24-hour course on Responsible Conduct of Research for PhD students. It focuses on traditional misconduct (Fabrication, Falsification, Plagiarism), challenges of AI, and the 'publish or perish' culture, illustrated with case studies.</p><h2>Key Author</h2><strong>David B. Resnik, J.D., Ph.D.:</strong> A bioethicist whose work, 'What Is Ethics in Research?', informs such courses." }
+                }
+            ]
+        };
+        const feedbackColors = {
+            'error': 'bg-red-100 text-red-800',
+            'success': 'bg-green-100 text-green-800',
+            'warning': 'bg-yellow-100 text-yellow-800'
+        };
+
+        function showFeedback(dilemmaId) {
+            const feedbackBox = document.getElementById('feedback-box');
+            const feedback = courseData.feedbackMessages[dilemmaId];
+            feedbackBox.innerHTML = `
+                <p class="font-bold">Feedback:</p>
+                <p class="${feedbackColors[feedback.type]} p-2 rounded-md">${feedback.text}</p>
+            `;
+            feedbackBox.classList.remove('hidden');
+        }
+
+        function showComplexFeedback(dilemmaId, option, button) {
+            const feedbackBoxId = `${dilemmaId}-feedback`;
+            const feedbackBox = document.getElementById(feedbackBoxId);
+            const feedback = courseData.complexFeedback[dilemmaId][option];
+            
+            const dilemmaOptions = button.closest('.dilemma-options').querySelectorAll('button');
+            dilemmaOptions.forEach(btn => {
+                btn.classList.remove('bg-green-200', 'bg-red-200', 'bg-yellow-200');
+            });
+
+            let buttonColorClass = 'bg-gray-100';
+            if (feedback.type === 'success') {
+                buttonColorClass = 'bg-green-200';
+            } else if (feedback.type === 'error') {
+                buttonColorClass = 'bg-red-200';
+            } else if (feedback.type === 'warning') {
+                buttonColorClass = 'bg-yellow-200';
+            }
+            button.classList.add(buttonColorClass);
+
+            feedbackBox.innerHTML = `
+                <h4 class="font-bold text-lg mb-2">${feedback.heading}</h4>
+                <p class="mb-4">${feedback.text}</p>
+                <p class="font-semibold">${feedback.reflection}</p>
+            `;
+            feedbackBox.classList.remove('hidden');
+        }
+
+        function toggleDetail(id) {
+            document.getElementById(id).classList.toggle('hidden');
+        }
+
+        function showCaseStudy(caseId) {
+            const displayArea = document.getElementById('case-study-display');
+            const caseStudy = courseData.caseStudies[caseId];
+            displayArea.innerHTML = `
+                <div class="bg-gray-50 p-6 rounded-lg shadow-inner">
+                    <h4 class="font-bold text-xl mb-2">${caseStudy.title}</h4>
+                    <p class="text-sm">${caseStudy.content}</p>
+                </div>
+            `;
+        }
+
+        let chartInstance = null;
+        function renderChart() {
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+            const ctx = document.getElementById('dilemmasChart');
+            if (ctx) {
+                const chartData = {
+                    labels: ['Authorship Disputes', 'Data Manipulation', 'Plagiarism', 'Supervisor Conflict', 'Peer Review Issues', 'Conflicts of Interest', 'Unethical AI Use'],
+                    datasets: [{
+                        label: 'Prevalence in PhD Research (%)',
+                        data: [55, 40, 65, 70, 30, 25, 50],
+                        backgroundColor: '#A9B4C2',
+                        borderColor: '#8A99A8',
+                        borderWidth: 1,
+                        borderRadius: 5,
+                    }]
+                };
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        plugins: {
+                            legend: {
+                                display: false,
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.raw + '% of students reported facing this issue';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Percentage of Students'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        function renderTimeline() {
+            const timelineDiv = document.getElementById('timeline-embed');
+            if(timelineDiv) {
+                new TL.Timeline('timeline-embed', timelineData);
+            }
+        }
+        function renderModule(moduleId) {
+            const contentArea = document.getElementById('content-area');
+            const module = courseData[moduleId];
+            if (module) {
+                contentArea.classList.add('content-fade-out');
+                setTimeout(() => {
+                    contentArea.innerHTML = module.content;
+                    contentArea.classList.remove('content-fade-out');
+                    if (moduleId === 'home') {
+                        renderChart();
+                    } else if (moduleId === 'module7') {
+                        renderTimeline();
+                    }
+                }, 300);
+            }
+        }
+
+        function setupNavigation() {
+            const sidebarNav = document.getElementById('sidebar-nav');
+            const navItems = Object.keys(courseData);
+            navItems.forEach(id => {
+                const navItem = document.createElement('a');
+                navItem.href = `#${id}`;
+                navItem.className = 'sidebar-link block p-3 rounded-lg text-lg hover:bg-[#A9B4C2] hover:bg-opacity-50 transition-colors';
+                navItem.textContent = courseData[id].title;
+                navItem.onclick = (e) => {
+                    e.preventDefault();
+                    renderModule(id);
+                    document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
+                    navItem.classList.add('active');
+                };
+                sidebarNav.appendChild(navItem);
+            });
+            // Initial render
+            if (navItems.length > 0) {
+                renderModule(navItems[0]);
+                document.querySelector('.sidebar-link').classList.add('active');
+            }
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            setupNavigation();
+        });
+
+        // Expose functions to the global scope for onclick handlers
+        window.showFeedback = showFeedback;
+        window.showComplexFeedback = showComplexFeedback;
+        window.toggleDetail = toggleDetail;
+        window.showCaseStudy = showCaseStudy;
+    })();
+</script>
+</body>
+</html>
